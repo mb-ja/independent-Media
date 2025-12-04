@@ -7,37 +7,37 @@ async function getAllRecords() {
   const options = {
     method: "GET",
     headers: {
-      Authorization: `Bearer patDNAGwtRJOI3ipa.65e03f8442dd5cf1eb199f39fdc72bdf66deb576bda9122b28789404e48daf0e`,
+      Authorization: `Bearer patDNAGwtRJOI3ipa.69cc3be3d571e5d390a56783b32ecc586d1cb742242e5b07d3ecd961bb28afc2`,
     },
   };
 
   await fetch(
-    `https://api.airtable.com/v0/appIK32rbSA95DL2I/Table%201?maxRecords=3&view=Grid%20view`,
+    `https://api.airtable.com/v0/appkTpCpn0RGf4pQE/table%201?maxRecords=3&view=Grid%20view`,
     options
   )
     .then((response) => response.json())
     .then((data) => {
       console.log(data); // response is an object w/ .records array
-   getResultElement.innerHTML = ""; // clear brews
+      getResultElement.innerHTML = ""; // clear brews
 
       let newHtml = "";
 
       for (let i = 0; i < data.records.length; i++) {
-        let logo = data.records[i].fields["Logo"]; // here we are getting column values
-        let name = data.records[i].fields["Name"]; //here we are using the Field ID to fecth the name property
-        let neighborhood = data.records[i].fields["Neighborhood"];
+        let Photo = data.records[i].fields["Photo"]; // here we are getting column values
+        let Name = data.records[i].fields["Name"]; //here we are using the Field ID to fecth the name property
+        let politicalLeanings = data.records[i].fields["politicalLeanings"];
 
         newHtml += `
         
          <div class="col-xl-4 cardImageText">
           <div class="card list move border-dark mb-5" style="width: 20rem;">
-          <a href="breweries.html?id=${data.records[i].id}">${
-          logo
-            ? `<img class="card-img-top rounded" alt="${name}" src="${logo[0].url}">`
+          <a href="index.html?id=${data.records[i].id}">${
+          photo
+            ? `<img class="card-img-top rounded" alt="${name}" src="${Photo[0].url}">`
             : ``
         }
           </a>
-          <p hidden class="card-key">${neighborhood}</p>
+          <p hidden class="card-key">${politicalLeanings}</p>
           </div>
           </div>
         </div>
@@ -56,10 +56,7 @@ async function getAllRecords() {
 // ["?id=", "receHhOzntTGZ44I5"] and then we only choose the second one
 let idParams = window.location.search.split("?id=");
 if (idParams.length >= 2) {
-  
   getOneRecord(idParams[1]); // create detail view HTML w/ our id
 } else {
-  
-  
   getAllRecords(); // no id given, fetch summaries
 }

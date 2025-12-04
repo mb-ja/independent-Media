@@ -2,7 +2,7 @@
 
 // function for our list view
 async function getAllRecords() {
-  let getResultElement = document.getElementById("brews");
+  let getResultElement = document.getElementById("journalist");
 
   const options = {
     method: "GET",
