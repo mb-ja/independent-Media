@@ -60,3 +60,94 @@ if (idParams.length >= 2) {
 } else {
   getAllRecords(); // no id given, fetch summaries
 }
+// function for our detail view
+async function getOneRecord(id) {
+  let jobsResultElement = document.getElementById("brews");
+
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer pateG7pBF1CkfmcW7.2c666498dc7818660958fea1c0bb95e5e1d33bbdb4871fed8ee5696394e05ce5`,
+    },
+  };
+
+  await fetch(
+    `https://api.airtable.com/v0/app4d1fvvjII8WH8W/Breweries/${id}`,
+    options
+  )
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data); // response is a single object
+
+      let picture = data.fields["Picture"];
+      let name = data.fields["Name"];
+      let address = data.fields["Address"];
+      let zip = data.fields["Zip"];
+      let neighborhood = data.fields["Neighborhood"];
+      let description = data.fields["Description"];
+      let logo = data.fields["Logo"];
+      let hours = data.fields["Hours"];
+      let happy = data.fields["Happy"];
+      
+
+      let newHtml = `
+        <div class="card list mb-3">
+  <div class="row g-0">
+    <div class="col-md-4 d-flex justify-content-center align-items-center">
+     ${
+       logo
+         ? `<img class="img-fluid back ms-4" alt="${name}" src="${logo[0].url}">`
+         : ``
+     }
+    </div>
+    <div class="col-md-6 d-flex justify-content-center align-items-center desc">
+      <div class="card-body">
+        <h5 class="card-title bar">${name}</h5>
+        <p class="card-text">${description}</p>
+        <p class="card-text"><small>${stars(rating)} (${rating})</small></p>
+        <p class="card-text"><small>${address} <br> SF, CA ${zip}</small></p>
+        <a href="${map}" target="_blank"><button type="button" class="btn btn-primary btn-sm">Get Directions</button></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card list mb-3">
+  <div class="row g-0">
+    <div class="col-md-4 d-flex justify-content-center ">
+    ${
+      picture
+        ? `<img class="img-fluid front" alt="${name}" src="${picture[0].url}">`
+        : ``
+    }
+       </div>
+       <div class="col-md-6 d-flex justify-content-center align-items-center">
+       <div class="card-body">
+       <div class="card-group hours mx-auto">    
+  <div class="card list hours shift">
+    <div class="card-body">
+      <h4 class="card-title">🕔 Hours</h4>
+      <p class="card-text">${formattedString(hours)}</p>
+      
+    </div>
+  </div>
+  <div class="card list hours">
+    <div class="card-body">
+      <h4 class="card-title">😁 🕔 Happy Hours</h4>
+      <p class="card-text">${formattedString(happy)}</p>
+     
+    </div>
+  </div>
+</div>
+<div class="moves">
+
+</div>
+</div>
+</div>
+</div>
+</div>
+      `;
+
+      jobsResultElement.innerHTML = newHtml;
+    });
+}
