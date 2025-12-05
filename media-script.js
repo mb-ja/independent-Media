@@ -23,8 +23,8 @@ async function getAllRecords() {
       let newHtml = "";
 
       for (let i = 0; i < data.records.length; i++) {
-        let Photo = data.records[i].fields["Photo"]; // here we are getting column values
-        let Name = data.records[i].fields["Name"]; //here we are using the Field ID to fecth the name property
+        let photo = data.records[i].fields["photo"]; // here we are getting column values
+        let name = data.records[i].fields["name"]; //here we are using the Field ID to fecth the name property
         let politicalLeanings = data.records[i].fields["politicalLeanings"];
 
         newHtml += `
@@ -33,7 +33,7 @@ async function getAllRecords() {
           <div class="card list move border-dark mb-5" style="width: 20rem;">
           <a href="index.html?id=${data.records[i].id}">${
           photo
-            ? `<img class="card-img-top rounded" alt="${name}" src="${Photo[0].url}">`
+            ? `<img class="card-img-top rounded" alt="${name}" src="${photo[0].url}">`
             : ``
         }
           </a>
@@ -62,7 +62,7 @@ if (idParams.length >= 2) {
 }
 // function for our detail view
 async function getOneRecord(id) {
-  let jobsResultElement = document.getElementById("brews");
+  let jobsResultElement = document.getElementById("");
 
   const options = {
     method: "GET",
@@ -81,13 +81,13 @@ async function getOneRecord(id) {
 
       let picture = data.fields["Picture"];
       let name = data.fields["Name"];
-      let address = data.fields["Address"];
-      let zip = data.fields["Zip"];
-      let neighborhood = data.fields["Neighborhood"];
-      let description = data.fields["Description"];
-      let logo = data.fields["Logo"];
-      let hours = data.fields["Hours"];
-      let happy = data.fields["Happy"];
+      let mediumTitle = data.fields["mediumTitle"];
+      let description = data.fields["description"]
+      let politicalLeanings = data.fields["politicalLeanings"];
+      let mediaForm = data.fields["mediaForm"];
+      let pastWorkExperience = data.fields["pastWorkExperience"];
+      let streamingPlatforms = data.fields["streamingPlatforms"];
+      let primaryBeat = data.fields["PrimaryBeat"];
       
 
       let newHtml = `
