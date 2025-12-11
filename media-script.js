@@ -1,19 +1,35 @@
 "use strict";
 
 // --- CONFIGURATION ---
+
+// 1. YOUR API KEY
 const API_KEY =
-  "pateG7pBF1CkfmcW7.2c666498dc7818660958fea1c0bb95e5e1d33bbdb4871fed8ee5696394e05ce5";
+  "patDNAGwtRJOI3ipa.69cc3be3d571e5d390a56783b32ecc586d1cb742242e5b07d3ecd961bb28afc2";
+
+// 2. YOUR BASE ID
 const BASE_ID = "appkTpCpn0RGf4pQE";
+
+// 3. YOUR TABLE NAME
 const TABLE_NAME = "table%201";
 
-// 1. MAIN FUNCTION: Fetch and Create Profile Cards
+// 1. MAIN FUNCTION: Fetch and Create List View
 async function getAllRecords() {
-  // CHANGED: Instead of 7 columns, we get one main container
-  const container = document.getElementById("profiles-container");
+  let container = document.getElementById("profiles-container");
+
+  // Safety check
+  if (!container) {
+    console.error(
+      "ERROR: Cannot find <div id='profiles-container'> in your HTML."
+    );
+    return;
+  }
 
   const options = {
     method: "GET",
-    headers: { Authorization: `Bearer ${API_KEY}` },
+    headers: {
+      // FIX: Use the variable, do not hardcode the string here
+      Authorization: `Bearer ${API_KEY}`,
+    },
   };
 
   try {
@@ -22,182 +38,237 @@ async function getAllRecords() {
       options
     );
 
-    if (!response.ok) throw new Error("Airtable fetch failed");
-    const data = await response.json();
+    if (!response.ok) throw new Error(`Airtable Error: ${response.status}`);
 
-    // Clear the container
+    const data = await response.json();
+    console.log("Records Found:", data.records.length);
+
     container.innerHTML = "";
+    let newHtml = "";
 
     for (let i = 0; i < data.records.length; i++) {
       let record = data.records[i];
       let fields = record.fields;
 
-      let name = fields["name"] || "Unnamed";
-      let leaning = fields["politicalLeanings"] || "Center";
-      let mediumTitle = fields["mediumTitle"] || "";
-      let photoUrl = fields["photo"]
-        ? fields["photo"][0].url
-        : "https://via.placeholder.com/300"; // Increased placeholder size for cards
+      // Defensive Data Pulling
+      let name = fields["name"] || fields["Name"] || "No Name";
+      let leaning =
+        fields["politicalLeanings"] ||
+        fields["Political Leanings"] ||
+        "Unspecified";
+      let mediumTitle = fields["mediumTitle"] || fields["Medium Title"] || "";
 
-      // --- NEW PROFILE CARD LAYOUT ---
-      // We removed the logic that sorted by 'targetIndex'.
-      // Now we create a responsive card for every record.
-      let cardHtml = `
-        <div class="col-12 col-md-6 col-lg-4 mb-4 cardImageText">
-            <div class="card h-100 shadow-sm">
-                <img src="${photoUrl}" class="card-img-top" alt="${name}" style="height: 250px; object-fit: cover;">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title fw-bold">${name}</h5>
-                    <p class="card-subtitle text-muted mb-2">${mediumTitle}</p>
-                    <span class="badge bg-dark mb-3 align-self-start">${leaning}</span>
-                    <a href="index.html?id=${record.id}" class="btn btn-outline-dark mt-auto stretched-link">View Profile</a>
-                    
-                    <p class="card-key d-none">${name} ${leaning} ${mediumTitle}</p>
-                </div>
-            </div>
-        </div>
+      let photoField =
+        fields["photo"] || fields["Photo"] || fields["Attachments"];
+      let photoUrl = photoField
+        ? photoField[0].url
+        : "https://via.placeholder.com/400x300?text=No+Image";
+
+      newHtml += `
+      <div class="col-12 col-md-6 col-lg-4 mb-4 cardImageText">
+          <div class="card h-100 shadow-sm border-0">
+              <div style="height: 240px; overflow: hidden;">
+                 <a href="index.html?id=${record.id}">
+                  <img src="${photoUrl}" class="card-img-top w-100 h-100" style="object-fit: cover;" alt="${name}">
+                 </a>
+              </div>
+              
+              <div class="card-body d-flex flex-column">
+                  <span class="badge bg-secondary mb-2 align-self-start">${leaning}</span>
+                  <h5 class="card-title fw-bold text-dark">${name}</h5>
+                  <p class="card-text text-muted fst-italic">${mediumTitle}</p>
+                  
+                  <a href="index.html?id=${record.id}" class="btn btn-dark mt-auto stretched-link">View Full Profile</a>
+                  
+                  <p hidden class="card-key">${name} ${leaning} ${mediumTitle}</p>
+              </div>
+          </div>
+      </div>
       `;
-
-      // Append directly to the main container
-      container.innerHTML += cardHtml;
     }
+
+    container.innerHTML = newHtml;
   } catch (error) {
     console.error(error);
   }
 }
 
-// 2. DROPDOWN MENU FUNCTION
-async function dropdown() {
-  let dropdownMenu = document.getElementById("menu");
-  const options = {
-    method: "GET",
-    headers: { Authorization: `Bearer ${API_KEY}` },
-  };
+// 2. UTILITY FUNCTIONS
 
-  try {
-    const response = await fetch(
-      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?view=Grid%20view`,
-      options
-    );
-    const data = await response.json();
-
-    dropdownMenu.innerHTML = "";
-    let menuHtml = "";
-
-    for (let i = 0; i < data.records.length; i++) {
-      let name = data.records[i].fields["name"];
-      menuHtml += `<li><a class="dropdown-item" href="index.html?id=${data.records[i].id}">${name}</a></li>`;
-    }
-    dropdownMenu.innerHTML = menuHtml;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-// 3. SEARCH FUNCTION
-function searchFunction() {
-  let input, filter, cards, i, key;
-  input = document.getElementById("myinput");
-  filter = input.value.toUpperCase();
-  // targets the wrapper div created in getAllRecords
-  cards = document.getElementsByClassName("cardImageText");
-
-  for (i = 0; i < cards.length; i++) {
-    key = cards[i].getElementsByClassName("card-key")[0];
-    if (key) {
-      if (key.innerHTML.toUpperCase().indexOf(filter) > -1) {
-        // Revert to default behaviour (block/flex based on bootstrap)
-        cards[i].style.display = "";
-      } else {
-        cards[i].style.display = "none";
-      }
-    }
-  }
-}
-
-// 4. UTILITY
 function formattedString(value) {
-  if (!value) return "";
+  if (!value) return "None listed";
   return value
     .split(",")
     .map((item) => `<li>${item.trim()}</li>`)
     .join("");
 }
 
-// 5. DETAIL VIEW FUNCTION
-async function getOneRecord(id) {
-  // Hide Landing, Show Detail
-  let landing = document.getElementById("landing-view");
-  let detail = document.getElementById("detail-view");
+function myFunction() {
+  let x = document.getElementById("myinput");
+  if (x) {
+    if (x.style.display === "none") {
+      x.style.display = "block";
+    } else {
+      x.style.display = "none";
+    }
+  }
+}
 
-  if (landing) landing.style.display = "none";
-  if (detail) detail.style.display = "block";
+function myNeighborhood(x) {
+  let n = document.getElementById("myinput");
+  if (n && x.matches) {
+    n.style.display = "none";
+  }
+}
 
-  const detailContainer = document.getElementById("detail-content");
+// Media Query Setup
+var x = window.matchMedia("(max-width: 1100px)");
+x.addEventListener("change", function () {
+  myNeighborhood(x);
+});
+
+// 3. DROPDOWN MENU FUNCTION
+async function dropdown() {
+  let dropdownElement = document.getElementById("menu");
+  if (!dropdownElement) return;
 
   const options = {
     method: "GET",
     headers: { Authorization: `Bearer ${API_KEY}` },
   };
 
-  await fetch(
-    `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${id}`,
-    options
-  )
-    .then((response) => response.json())
-    .then((data) => {
-      let fields = data.fields;
-      let name = fields["name"];
-      let photoUrl = fields["photo"]
-        ? fields["photo"][0].url
-        : "https://via.placeholder.com/300";
-      let leaning = fields["politicalLeanings"];
-      let description = fields["description"] || "No bio available.";
-      let mediumTitle = fields["mediumTitle"] || "";
-      let primaryBeat = fields["primaryBeat"] || "General";
-      let mediaForm = fields["mediaForm"] || "Journalism";
-      let pastWork = fields["pastWorkExperience"] || "";
-      let streaming = fields["streamingPlatforms"] || "";
+  try {
+    const response = await fetch(
+      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?view=Grid%20view`,
+      options
+    );
+    const data = await response.json();
 
-      let html = `
-        <div class="card shadow-lg border-0 rounded-0">
-          <div class="row g-0">
-            <div class="col-md-4 bg-light text-center p-4 border-end">
-                <img src="${photoUrl}" class="img-fluid rounded-circle border border-dark p-1 mb-4" alt="${name}">
-                <ul class="list-group list-group-flush text-start">
-                    <li class="list-group-item bg-light"><strong>Beat:</strong> ${primaryBeat}</li>
-                    <li class="list-group-item bg-light"><strong>Format:</strong> ${mediaForm}</li>
-                    <li class="list-group-item bg-light"><strong>Streaming:</strong> <ul>${formattedString(
-                      streaming
-                    )}</ul></li>
-                </ul>
-            </div>
-            <div class="col-md-8 p-5">
-                <span class="badge bg-dark rounded-0 mb-3 text-uppercase">${leaning}</span>
-                <h1 class="font-headline display-4 fw-bold mb-2">${name}</h1>
-                <h4 class="font-body text-muted fst-italic mb-4">${mediumTitle}</h4>
-                <div class="font-body fs-5 lh-lg mb-5">${description}</div>
-                <div class="card bg-light border-0 p-3">
-                    <h5 class="font-headline fw-bold">Past Work Experience</h5>
-                    <ul>${formattedString(pastWork)}</ul>
-                </div>
-                <div class="mt-4">
-                    <a href="index.html" class="btn btn-outline-dark">Back to List</a>
-                </div>
+    dropdownElement.innerHTML = "";
+    let otherHtml = "";
+
+    for (let i = 0; i < data.records.length; i++) {
+      let name =
+        data.records[i].fields["name"] || data.records[i].fields["Name"];
+      otherHtml += `<li><a class="dropdown-item" href="index.html?id=${data.records[i].id}">${name}</a></li>`;
+    }
+    dropdownElement.innerHTML = otherHtml;
+  } catch (error) {
+    console.error("Dropdown Error:", error);
+  }
+}
+
+// 4. DETAIL VIEW FUNCTION
+async function getOneRecord(id) {
+  const landing = document.getElementById("landing-view");
+  const detail = document.getElementById("detail-view");
+  const detailContent = document.getElementById("detail-content");
+
+  if (landing) landing.style.display = "none";
+  if (detail) detail.style.display = "block";
+
+  const options = {
+    method: "GET",
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  };
+
+  try {
+    const response = await fetch(
+      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${id}`,
+      options
+    );
+    const data = await response.json();
+    console.log("Detail Data:", data);
+
+    let fields = data.fields;
+
+    // Defensive Mapping
+    let name = fields["name"] || fields["Name"] || "Unnamed";
+    let photoField =
+      fields["photo"] || fields["Photo"] || fields["Attachments"];
+    let photoUrl = photoField
+      ? photoField[0].url
+      : "https://via.placeholder.com/400";
+    let leaning =
+      fields["politicalLeanings"] || fields["Political Leanings"] || "N/A";
+    let description =
+      fields["description"] ||
+      fields["Description"] ||
+      "No biography available.";
+    let mediumTitle = fields["mediumTitle"] || fields["Medium Title"] || "";
+    let primaryBeat =
+      fields["primaryBeat"] || fields["Primary Beat"] || "General";
+    let mediaForm = fields["mediaForm"] || fields["Media Form"] || "Journalism";
+    let pastWork = fields["pastWorkExperience"] || fields["Past Work"] || "";
+    let streaming = fields["streamingPlatforms"] || fields["Streaming"] || "";
+
+    let newHtml = `
+          <div class="card shadow-lg border-0 rounded-0 mt-5">
+            <div class="row g-0">
+              <div class="col-md-4 bg-light text-center p-4 border-end">
+                  <img src="${photoUrl}" class="img-fluid rounded-circle border border-dark p-1 mb-4" style="width: 200px; height: 200px; object-fit: cover;" alt="${name}">
+                  <ul class="list-group list-group-flush text-start">
+                      <li class="list-group-item bg-light"><strong>Beat:</strong> ${primaryBeat}</li>
+                      <li class="list-group-item bg-light"><strong>Format:</strong> ${mediaForm}</li>
+                      <li class="list-group-item bg-light"><strong>Streaming:</strong> <ul>${formattedString(
+                        streaming
+                      )}</ul></li>
+                  </ul>
+              </div>
+              <div class="col-md-8 p-5">
+                  <span class="badge bg-dark rounded-0 mb-3 text-uppercase">${leaning}</span>
+                  <h1 class="display-4 fw-bold mb-2">${name}</h1>
+                  <h4 class="text-muted fst-italic mb-4">${mediumTitle}</h4>
+                  <div class="fs-5 lh-lg mb-5">${description}</div>
+                  
+                  <div class="card bg-light border-0 p-3 mb-4">
+                      <h5 class="fw-bold">Past Work Experience</h5>
+                      <ul>${formattedString(pastWork)}</ul>
+                  </div>
+                  
+                  <a href="index.html" class="btn btn-outline-dark">Back to List</a>
+              </div>
             </div>
           </div>
-        </div>
-      `;
-      detailContainer.innerHTML = html;
-    });
+    `;
+
+    if (detailContent) detailContent.innerHTML = newHtml;
+  } catch (error) {
+    console.error("Detail Fetch Error:", error);
+  }
+}
+
+// 5. SEARCH FUNCTION
+function searchFunction() {
+  let input, filter, cardimagetext, i, key;
+
+  input = document.getElementById("myinput");
+  if (!input) return;
+
+  filter = input.value.toUpperCase();
+  cardimagetext = document.getElementsByClassName("cardImageText");
+
+  for (let x = 0; x < cardimagetext.length; x++) {
+    key = cardimagetext[x].querySelector(".card-key");
+    if (key) {
+      if (key.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        cardimagetext[x].style.display = "";
+      } else {
+        cardimagetext[x].style.display = "none";
+      }
+    }
+  }
 }
 
 // 6. ROUTER
 let idParams = window.location.search.split("?id=");
+
 if (idParams.length >= 2) {
+  myFunction(); // Hide search bar on detail view
   dropdown();
   getOneRecord(idParams[1]);
 } else {
+  myNeighborhood(x); // Check mobile state
   dropdown();
   getAllRecords();
 }
