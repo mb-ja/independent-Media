@@ -1,153 +1,203 @@
 "use strict";
 
-// function for our list view
+// --- CONFIGURATION ---
+const API_KEY =
+  "pateG7pBF1CkfmcW7.2c666498dc7818660958fea1c0bb95e5e1d33bbdb4871fed8ee5696394e05ce5";
+const BASE_ID = "appkTpCpn0RGf4pQE";
+const TABLE_NAME = "table%201";
+
+// 1. MAIN FUNCTION: Fetch and Create Profile Cards
 async function getAllRecords() {
-  let getResultElement = document.getElementById("journalist");
+  // CHANGED: Instead of 7 columns, we get one main container
+  const container = document.getElementById("profiles-container");
 
   const options = {
     method: "GET",
-    headers: {
-      Authorization: `Bearer patDNAGwtRJOI3ipa.69cc3be3d571e5d390a56783b32ecc586d1cb742242e5b07d3ecd961bb28afc2`,
-    },
+    headers: { Authorization: `Bearer ${API_KEY}` },
   };
 
-  await fetch(
-    `https://api.airtable.com/v0/appkTpCpn0RGf4pQE/table%201?maxRecords=3&view=Grid%20view`,
-    options
-  )
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data); // response is an object w/ .records array
-      getResultElement.innerHTML = ""; // clear brews
+  try {
+    const response = await fetch(
+      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?view=Grid%20view`,
+      options
+    );
 
-      let newHtml = "";
+    if (!response.ok) throw new Error("Airtable fetch failed");
+    const data = await response.json();
 
-      for (let i = 0; i < data.records.length; i++) {
-        let photo = data.records[i].fields["photo"]; // here we are getting column values
-        let name = data.records[i].fields["name"]; //here we are using the Field ID to fecth the name property
-        let politicalLeanings = data.records[i].fields["politicalLeanings"];
+    // Clear the container
+    container.innerHTML = "";
 
-        newHtml += `
-        
-         <div class="col-xl-4 cardImageText">
-          <div class="card list move border-dark mb-5" style="width: 20rem;">
-          <a href="index.html?id=${data.records[i].id}">${
-          photo
-            ? `<img class="card-img-top rounded" alt="${name}" src="${photo[0].url}">`
-            : ``
-        }
-          </a>
-          <p hidden class="card-key">${politicalLeanings}</p>
-          </div>
-          </div>
+    for (let i = 0; i < data.records.length; i++) {
+      let record = data.records[i];
+      let fields = record.fields;
+
+      let name = fields["name"] || "Unnamed";
+      let leaning = fields["politicalLeanings"] || "Center";
+      let mediumTitle = fields["mediumTitle"] || "";
+      let photoUrl = fields["photo"]
+        ? fields["photo"][0].url
+        : "https://via.placeholder.com/300"; // Increased placeholder size for cards
+
+      // --- NEW PROFILE CARD LAYOUT ---
+      // We removed the logic that sorted by 'targetIndex'.
+      // Now we create a responsive card for every record.
+      let cardHtml = `
+        <div class="col-12 col-md-6 col-lg-4 mb-4 cardImageText">
+            <div class="card h-100 shadow-sm">
+                <img src="${photoUrl}" class="card-img-top" alt="${name}" style="height: 250px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold">${name}</h5>
+                    <p class="card-subtitle text-muted mb-2">${mediumTitle}</p>
+                    <span class="badge bg-dark mb-3 align-self-start">${leaning}</span>
+                    <a href="index.html?id=${record.id}" class="btn btn-outline-dark mt-auto stretched-link">View Profile</a>
+                    
+                    <p class="card-key d-none">${name} ${leaning} ${mediumTitle}</p>
+                </div>
+            </div>
         </div>
-    
-        
-        `;
-      }
-
-      getResultElement.innerHTML = newHtml;
-    });
-}
-
-// look up window.location.search and split, so this would take
-// https://dmspr2021-airtable-app.glitch.me/index.html?id=receHhOzntTGZ44I5
-// and look at the ?id=receHhOzntTGZ44I5 part, then split that into an array
-// ["?id=", "receHhOzntTGZ44I5"] and then we only choose the second one
-let idParams = window.location.search.split("?id=");
-if (idParams.length >= 2) {
-  getOneRecord(idParams[1]); // create detail view HTML w/ our id
-} else {
-  getAllRecords(); // no id given, fetch summaries
-}
-// function for our detail view
-async function getOneRecord(id) {
-  let jobsResultElement = document.getElementById("");
-
-  const options = {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer pateG7pBF1CkfmcW7.2c666498dc7818660958fea1c0bb95e5e1d33bbdb4871fed8ee5696394e05ce5`,
-    },
-  };
-
-  await fetch(
-    `https://api.airtable.com/v0/app4d1fvvjII8WH8W/Breweries/${id}`,
-    options
-  )
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data); // response is a single object
-
-      let picture = data.fields["Picture"];
-      let name = data.fields["Name"];
-      let mediumTitle = data.fields["mediumTitle"];
-      let description = data.fields["description"]
-      let politicalLeanings = data.fields["politicalLeanings"];
-      let mediaForm = data.fields["mediaForm"];
-      let pastWorkExperience = data.fields["pastWorkExperience"];
-      let streamingPlatforms = data.fields["streamingPlatforms"];
-      let primaryBeat = data.fields["PrimaryBeat"];
-      
-
-      let newHtml = `
-        <div class="card list mb-3">
-  <div class="row g-0">
-    <div class="col-md-4 d-flex justify-content-center align-items-center">
-     ${
-       logo
-         ? `<img class="img-fluid back ms-4" alt="${name}" src="${logo[0].url}">`
-         : ``
-     }
-    </div>
-    <div class="col-md-6 d-flex justify-content-center align-items-center desc">
-      <div class="card-body">
-        <h5 class="card-title bar">${name}</h5>
-        <p class="card-text">${description}</p>
-        <p class="card-text"><small>${stars(rating)} (${rating})</small></p>
-        <p class="card-text"><small>${address} <br> SF, CA ${zip}</small></p>
-        <a href="${map}" target="_blank"><button type="button" class="btn btn-primary btn-sm">Get Directions</button></a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="card list mb-3">
-  <div class="row g-0">
-    <div class="col-md-4 d-flex justify-content-center ">
-    ${
-      picture
-        ? `<img class="img-fluid front" alt="${name}" src="${picture[0].url}">`
-        : ``
-    }
-       </div>
-       <div class="col-md-6 d-flex justify-content-center align-items-center">
-       <div class="card-body">
-       <div class="card-group hours mx-auto">    
-  <div class="card list hours shift">
-    <div class="card-body">
-      <h4 class="card-title">🕔 Hours</h4>
-      <p class="card-text">${formattedString(hours)}</p>
-      
-    </div>
-  </div>
-  <div class="card list hours">
-    <div class="card-body">
-      <h4 class="card-title">😁 🕔 Happy Hours</h4>
-      <p class="card-text">${formattedString(happy)}</p>
-     
-    </div>
-  </div>
-</div>
-<div class="moves">
-
-</div>
-</div>
-</div>
-</div>
-</div>
       `;
 
-      jobsResultElement.innerHTML = newHtml;
+      // Append directly to the main container
+      container.innerHTML += cardHtml;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// 2. DROPDOWN MENU FUNCTION
+async function dropdown() {
+  let dropdownMenu = document.getElementById("menu");
+  const options = {
+    method: "GET",
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  };
+
+  try {
+    const response = await fetch(
+      `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?view=Grid%20view`,
+      options
+    );
+    const data = await response.json();
+
+    dropdownMenu.innerHTML = "";
+    let menuHtml = "";
+
+    for (let i = 0; i < data.records.length; i++) {
+      let name = data.records[i].fields["name"];
+      menuHtml += `<li><a class="dropdown-item" href="index.html?id=${data.records[i].id}">${name}</a></li>`;
+    }
+    dropdownMenu.innerHTML = menuHtml;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// 3. SEARCH FUNCTION
+function searchFunction() {
+  let input, filter, cards, i, key;
+  input = document.getElementById("myinput");
+  filter = input.value.toUpperCase();
+  // targets the wrapper div created in getAllRecords
+  cards = document.getElementsByClassName("cardImageText");
+
+  for (i = 0; i < cards.length; i++) {
+    key = cards[i].getElementsByClassName("card-key")[0];
+    if (key) {
+      if (key.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        // Revert to default behaviour (block/flex based on bootstrap)
+        cards[i].style.display = "";
+      } else {
+        cards[i].style.display = "none";
+      }
+    }
+  }
+}
+
+// 4. UTILITY
+function formattedString(value) {
+  if (!value) return "";
+  return value
+    .split(",")
+    .map((item) => `<li>${item.trim()}</li>`)
+    .join("");
+}
+
+// 5. DETAIL VIEW FUNCTION
+async function getOneRecord(id) {
+  // Hide Landing, Show Detail
+  let landing = document.getElementById("landing-view");
+  let detail = document.getElementById("detail-view");
+
+  if (landing) landing.style.display = "none";
+  if (detail) detail.style.display = "block";
+
+  const detailContainer = document.getElementById("detail-content");
+
+  const options = {
+    method: "GET",
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  };
+
+  await fetch(
+    `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${id}`,
+    options
+  )
+    .then((response) => response.json())
+    .then((data) => {
+      let fields = data.fields;
+      let name = fields["name"];
+      let photoUrl = fields["photo"]
+        ? fields["photo"][0].url
+        : "https://via.placeholder.com/300";
+      let leaning = fields["politicalLeanings"];
+      let description = fields["description"] || "No bio available.";
+      let mediumTitle = fields["mediumTitle"] || "";
+      let primaryBeat = fields["primaryBeat"] || "General";
+      let mediaForm = fields["mediaForm"] || "Journalism";
+      let pastWork = fields["pastWorkExperience"] || "";
+      let streaming = fields["streamingPlatforms"] || "";
+
+      let html = `
+        <div class="card shadow-lg border-0 rounded-0">
+          <div class="row g-0">
+            <div class="col-md-4 bg-light text-center p-4 border-end">
+                <img src="${photoUrl}" class="img-fluid rounded-circle border border-dark p-1 mb-4" alt="${name}">
+                <ul class="list-group list-group-flush text-start">
+                    <li class="list-group-item bg-light"><strong>Beat:</strong> ${primaryBeat}</li>
+                    <li class="list-group-item bg-light"><strong>Format:</strong> ${mediaForm}</li>
+                    <li class="list-group-item bg-light"><strong>Streaming:</strong> <ul>${formattedString(
+                      streaming
+                    )}</ul></li>
+                </ul>
+            </div>
+            <div class="col-md-8 p-5">
+                <span class="badge bg-dark rounded-0 mb-3 text-uppercase">${leaning}</span>
+                <h1 class="font-headline display-4 fw-bold mb-2">${name}</h1>
+                <h4 class="font-body text-muted fst-italic mb-4">${mediumTitle}</h4>
+                <div class="font-body fs-5 lh-lg mb-5">${description}</div>
+                <div class="card bg-light border-0 p-3">
+                    <h5 class="font-headline fw-bold">Past Work Experience</h5>
+                    <ul>${formattedString(pastWork)}</ul>
+                </div>
+                <div class="mt-4">
+                    <a href="index.html" class="btn btn-outline-dark">Back to List</a>
+                </div>
+            </div>
+          </div>
+        </div>
+      `;
+      detailContainer.innerHTML = html;
     });
+}
+
+// 6. ROUTER
+let idParams = window.location.search.split("?id=");
+if (idParams.length >= 2) {
+  dropdown();
+  getOneRecord(idParams[1]);
+} else {
+  dropdown();
+  getAllRecords();
 }

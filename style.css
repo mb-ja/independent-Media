@@ -1,0 +1,128 @@
+/* --- FONTS --- */
+.font-headline {
+  font-family: "Playfair Display", serif;
+}
+.font-body {
+  font-family: "Merriweather", serif;
+}
+
+body {
+  background-color: #fdfbf7; /* Newsprint Off-White */
+  color: #1a1a1a;
+}
+
+/* --- HEADER --- */
+.masthead-border {
+  border-top: 3px solid black;
+  border-bottom: 1px solid black;
+  padding: 1rem 0;
+  margin-bottom: 0.5rem;
+}
+
+/* --- 7-COLUMN GRID LAYOUT --- */
+.bias-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  column-gap: 0.5rem;
+  height: 80vh; /* Fixed height for scrolling */
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.bias-col {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  background: white;
+  height: 100%;
+}
+
+.bias-header {
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+}
+
+.bias-content {
+  flex-grow: 1;
+  overflow-y: auto; /* Allow scrolling inside columns */
+  padding: 0.5rem;
+  text-align: center; /* Center the circles */
+
+  /* Hide Scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.bias-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- GROUND NEWS TINTS --- */
+.bg-tint-left-7 {
+  background-color: rgba(30, 64, 175, 0.1);
+} /* Very Light Blue Tint */
+.bg-tint-left-5 {
+  background-color: rgba(96, 165, 250, 0.1);
+}
+.bg-tint-left-2 {
+  background-color: rgba(219, 234, 254, 0.1);
+}
+.bg-neutral {
+  background-color: #f9fafb;
+}
+.bg-tint-right-2 {
+  background-color: rgba(254, 226, 226, 0.1);
+}
+.bg-tint-right-5 {
+  background-color: rgba(248, 113, 113, 0.1);
+}
+.bg-tint-right-7 {
+  background-color: rgba(153, 27, 27, 0.1);
+}
+
+/* --- CIRCLE JOURNALIST LINKS --- */
+.journalist-circle {
+  display: inline-block; /* Allows them to stack nicely */
+  margin: 6px 0;
+  transition: transform 0.2s ease;
+  text-decoration: none;
+  position: relative; /* For tooltip positioning */
+}
+
+.journalist-circle:hover {
+  transform: scale(1.1); /* Zoom effect on hover */
+  z-index: 10;
+}
+
+.journalist-photo {
+  width: 65px; /* Size of the circle */
+  height: 65px;
+  border-radius: 50%; /* Makes it a perfect circle */
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Tooltip on Hover (Optional: Shows name when you hover) */
+.journalist-circle:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.card-key {
+  display: none;
+} /* Hidden for search */
